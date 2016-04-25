@@ -29,7 +29,7 @@ def idle_scan(idle_host, target_host, target_port):
     if final_response is None:
         print "[!] Final request FAILED."
         return
-    
+
     final_response_id = final_response.id
 
     print "[*] Idle host FINAL RST ID: %d" % final_response_id
