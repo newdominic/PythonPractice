@@ -1,11 +1,12 @@
+import sys
 import socket
 
-RECV_BYTE = 1024
+RECV_BYTE = 1024    
 
 def connect():
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind (('192.168.0.106', 8080))
+    s.bind ((sys.argv[0], int(sys.argv[1])))
     s.listen(1)
     print '[*] Waiting for connection...'
     conn, addr = s.accept()
@@ -25,6 +26,11 @@ def connect():
 
 
 def main():
+    if len(sys.argv) < 3:
+        print '[!] Usage: Basic_Server.py <host> <port>'
+        return
+
+    sys.argv = sys.argv[1:]
     connect()
 
 
