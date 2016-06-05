@@ -2,6 +2,7 @@ import os
 import sys
 import base64
 import platform
+import tempfile
 import subprocess
 
 
@@ -95,11 +96,37 @@ def windows_search_file(arg_list):
             print '[!] %s is not a directory' % dir_path
             return
 
+        # find path format
+        temp_path_1 = tempfile.mkdtemp()
+        temp_process = subprocess.Popen('dir %s' % temp_path_1, shell=True, stdout=subprocess.PIPE)
+        result = temp_process.stdout.read().split('\r\n')
+        tag_position = -1
+        for line in result:
+            if ':\\' in line:
+                tag_position = -(len(line.replace(temp_path_1, '').split(' ')) - 2)
+                break
+
         if dir_path[-2] == ':' and dir_path[-1] == '\\':
             dir_path = dir_path[0:-1]
 
         cmd = subprocess.Popen('dir %s\%s /S' % (dir_path, arg_list[0]), shell=True, stdout=subprocess.PIPE)
-        print cmd.stdout.read()
+        result = cmd.stdout.read()
+        result = result.split('\r\n')
+        cur_path = ''
+        for line in result:
+            if ':\\' in line:
+                cur_path = ' '.join(line.split(' ')[1:tag_position])
+            else:
+                import datetime
+                line_split = line.split(' ')
+                try:
+                    # YY/MM/DD AMorPM Time SIZE file
+                    datetime.datetime.strptime(line_split[0], '%Y/%m/%d')
+                    line_split = [x for x in line_split if x != '']
+                    file_name = ' '.join(line_split[4:])
+                    print '%s\%s' % (cur_path, file_name)
+                except:
+                    pass
 
 
 def main():
